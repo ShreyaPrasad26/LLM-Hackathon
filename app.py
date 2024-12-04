@@ -275,7 +275,11 @@ class PharmaKnowledgeAssistant:
     def process_query(self, query: str) -> str:
         try:
             from workflow import process_with_workflow
-            return process_with_workflow(self, query)
+            response = process_with_workflow(self, query)
+            # Extract only the assistant's response
+            if isinstance(response, str) and "Assistant:" in response:
+                return response.split("Assistant:")[1].strip()
+            return response
         except Exception as e:
             logging.error(f"Error in process_query: {str(e)}")
             return f"An error occurred: {str(e)}"

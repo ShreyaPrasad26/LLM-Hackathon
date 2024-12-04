@@ -51,7 +51,7 @@ def prepare_documents(products: List[Dict]) -> List[Document]:
     """Prepare documents for vector store with text splitting."""
     logging.info("Starting document preparation...")
     documents = []
-    splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=200)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
     for product in tqdm(products, desc="Processing products"):
         product_name = product.get('PRODUCT_NAME', 'Unknown Product')
