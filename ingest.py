@@ -20,31 +20,40 @@ def prepare_documents(products: List[Dict]) -> List[Document]:
     """Prepare documents for vector store"""
     documents = []
     for product in products:
+        # Clean up duplicated content by taking first instance
+        cleaned_content = {
+            key: value.split('\n')[0] if isinstance(value, str) else value 
+            for key, value in product.items()
+        }
+        
+        # Get product name or use a default value
+        product_name = cleaned_content.get('product_name') or cleaned_content.get('PRODUCT NAME') or 'Unknown Product'
+        
         # Create a comprehensive document for each product
         content = f"""
-Product: {product['PRODUCT_NAME']}
+Product: {product_name}
 
-Description: {product.get('DESCRIPTION:', '')}
+Description: {cleaned_content.get('DESCRIPTION', '')}
 
-Clinical Pharmacology: {product.get('CLINICAL PHARMACOLOGY:', '')}
+Clinical Pharmacology: {cleaned_content.get('CLINICAL PHARMACOLOGY', '')}
 
-Indications and Usage: {product.get('INDICATIONS AND USAGE:', '')}
+Indications and Usage: {cleaned_content.get('INDICATIONS AND USAGE', '')}
 
-Contraindications: {product.get('CONTRAINDICATIONS:', '')}
+Contraindications: {cleaned_content.get('CONTRAINDICATIONS', '')}
 
-Warnings: {product.get('WARNINGS:', '')}
+Warnings: {cleaned_content.get('WARNINGS', '')}
 
-Precautions: {product.get('PRECAUTIONS:', '')}
+Precautions: {cleaned_content.get('PRECAUTIONS', '')}
 
-Adverse Reactions: {product.get('ADVERSE REACTIONS:', '')}
+Adverse Reactions: {cleaned_content.get('ADVERSE REACTIONS', '')}
 
-Dosage and Administration: {product.get('DOSAGE AND ADMINISTRATION:', '')}
+Dosage and Administration: {cleaned_content.get('DOSAGE AND ADMINISTRATION', '')}
 """
-        # Create a Document object instead of a dict
+        # Create a Document object
         doc = Document(
             page_content=content,
             metadata={
-                'product_name': product['product_name'],
+                'product_name': product_name,
                 'type': 'product_info'
             }
         )
@@ -58,7 +67,7 @@ def main():
     )
     
     # Load product data
-    products = load_product_data("microlabs_usa")
+    products = load_product_data("microlabs_usa_full_clean")
     
     # Prepare documents
     documents = prepare_documents(products)

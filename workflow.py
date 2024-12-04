@@ -22,24 +22,36 @@ def create_agent_workflow(assistant):
     }
 
     router_prompt = ChatPromptTemplate.from_messages([
-        ("system", """You are a workflow router for a pharmaceutical knowledge assistant.
-        Based on the user's query, determine which tool would be most appropriate to use:
-        
-        - product_knowledge: For questions about specific medicines and their details
-        - recommender: For requests seeking medicine recommendations based on symptoms
-        - alternatives: For queries about alternative medications
-        - summarizer: For requests to summarize medicine information
-        - internet_search: For general medical queries not covered by other tools
-        
-        Respond with only the tool name that best matches the query."""),
-        ("human", "{query}")
-    ])
+    ("system", """You are a workflow router for a pharmaceutical knowledge assistant.
+    Based on the user's query, determine which tool would be most appropriate to use:
+    
+    - product_knowledge: For questions about specific medicines and their details
+    - recommender: For requests seeking medicine recommendations based on symptoms
+    - alternatives: For queries about alternative medications
+    - summarizer: For requests to summarize medicine information
+    - internet_search: For general medical queries not covered by other tools
+    
+    Respond with only the tool name (e.g., "product_knowledge")."""),
+    ("human", "{query}")
+])
+
 
     def route_query(state: AgentState) -> AgentState:
         query = state["query"]
-        response = assistant.llm.invoke(router_prompt.format(query=query))
-        state["next_step"] = response.strip().lower()
+        response = assistant.llm.invoke(router_prompt.format(query=query)).strip()
+        
+        # Parse the response to extract the tool name
+        valid_tools = {"product_knowledge", "recommender", "alternatives", "summarizer", "internet_search"}
+        tool_name = response.lower()
+        
+        if tool_name in valid_tools:
+            state["next_step"] = tool_name
+        else:
+            state["next_step"] = "internet_search"  # Default to internet_search if invalid tool name
+            state["messages"].append(AIMessage(content="Error: Invalid tool selected. Defaulting to internet_search."))
+        
         return state
+
 
     def execute_tool(state: AgentState) -> AgentState:
         tool_name = state["next_step"]
