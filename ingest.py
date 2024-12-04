@@ -22,7 +22,7 @@ def prepare_documents(products: List[Dict]) -> List[Document]:
     for product in products:
         # Create a comprehensive document for each product
         content = f"""
-Product: {product['product_name']}
+Product: {product['PRODUCT_NAME']}
 
 Description: {product.get('DESCRIPTION:', '')}
 
